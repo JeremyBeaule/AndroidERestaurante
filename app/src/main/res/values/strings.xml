@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">AndroidERestaurante</string>
+    <string name="title_activity_category">CategoryActivity</string>
+    <string name="sample_entrees">Salade César, Soupe à l\'oignon, Tartare de saumon</string>
+    <string name="sample_main_courses">Steak frites, Poulet basquaise, Lasagnes végétariennes</string>
+    <string name="sample_desserts">Tarte tatin, Mousse au chocolat, Crème brûlée</string>
+    <string name="default_dish_name">Nom du plat</string>
+    <string name="title_activity_dish_detail">DishDetailActivity</string>
+</resources>
