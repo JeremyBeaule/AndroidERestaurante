@@ -61,44 +61,45 @@ class MainActivity : ComponentActivity() {
 fun HomePage(onCategoryClicked: (String) -> Unit, navigateToDishDetail: (String) -> Unit) {
     val context = LocalContext.current // Obtenez le contexte local pour le Toast
 
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Text(
-            text = "Bienvenue chez AnDroidRestaurant",
-            color = Color.White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .background(Color(0xFFFFA500))
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+                .align(Alignment.TopStart)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "Bienvenue chez\nAnDroidRestaurant",
+                color = Color.Black,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(16.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            MenuCategory("Entrées", Color(0xFFFFA500)) {
+                onCategoryClicked("Entrées")
+            }
+            MenuCategory("Plats", Color(0xFFFFA500)) {
+                onCategoryClicked("Plats")
+            }
+            MenuCategory("Desserts", Color(0xFFFFA500)) {
+                onCategoryClicked("Desserts")
+            }
+        }
         Image(
             painter = painterResource(id = R.drawable.mascot),
             contentDescription = "Mascot",
-            modifier = Modifier.size(128.dp)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+                .size(128.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        MenuCategory("Entrées") {
-            onCategoryClicked("Entrées")
-        }
-        MenuCategory("Plats") {
-            onCategoryClicked("Plats")
-        }
-        MenuCategory("Desserts") {
-            onCategoryClicked("Desserts")
-        }
     }
 }
 
 @Composable
-fun MenuCategory(name: String, onClick: () -> Unit) {
+fun MenuCategory(name: String, backgroundColor: Color, onClick: () -> Unit) {
     Text(
         text = name,
         fontSize = 20.sp,
@@ -107,10 +108,13 @@ fun MenuCategory(name: String, onClick: () -> Unit) {
             .padding(vertical = 8.dp)
             .clickable(onClick = onClick)
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .background(backgroundColor)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        color = Color.White
     )
     Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(horizontal = 50.dp))
 }
+
 
 @Preview(showBackground = true)
 @Composable
