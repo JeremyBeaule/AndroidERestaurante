@@ -5,11 +5,44 @@
       <entry key="CategoryScreenPreview">
         <State />
       </entry>
+      <entry key="DefaultPreview">
+        <State />
+      </entry>
+      <entry key="DishDetailActivity">
+        <State />
+      </entry>
+      <entry key="DishDetailPreview">
+        <State />
+      </entry>
       <entry key="GreetingPreview">
         <State />
       </entry>
       <entry key="app">
-        <State />
+        <State>
+          <targetSelectedWithDropDown>
+            <Target>
+              <type value="QUICK_BOOT_TARGET" />
+              <deviceKey>
+                <Key>
+                  <type value="VIRTUAL_DEVICE_PATH" />
+                  <value value="C:\Users\jerem\.android\avd\Test.avd" />
+                </Key>
+              </deviceKey>
+            </Target>
+          </targetSelectedWithDropDown>
+          <timeTargetWasSelectedWithDropDown value="2024-03-22T07:19:54.207197Z" />
+          <targetsSelectedWithDialog>
+            <Target>
+              <type value="QUICK_BOOT_TARGET" />
+              <deviceKey>
+                <Key>
+                  <type value="VIRTUAL_DEVICE_PATH" />
+                  <value value="C:\Users\jerem\.android\avd\Pixel_Fold_API_30_2.avd" />
+                </Key>
+              </deviceKey>
+            </Target>
+          </targetsSelectedWithDialog>
+        </State>
       </entry>
     </value>
   </component>

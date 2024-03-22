@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="header_background_color">#ff8519</color>
+    <color name="header_text_color">#FFFFFF</color>
 
-    <style name="Theme.AndroidERestaurante" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Utilisez Theme.MaterialComponents.Light au lieu de android:Theme.Material.Light -->
+    <style name="Theme.AndroidERestaurante" parent="Theme.MaterialComponents.Light">
+        <item name="android:background">@color/header_background_color</item>
+        <item name="android:textColorPrimary">@color/header_text_color</item>
+    </style>
 </resources>

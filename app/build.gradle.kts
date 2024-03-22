@@ -61,6 +61,18 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.volley)
+    implementation(libs.androidx.tools.core)
+    implementation ("com.google.accompanist:accompanist-pager:0.24.7-alpha")
+    implementation("com.google.code.gson:gson:2.8.9")
+    implementation("io.coil-kt:coil:1.4.0") // Vérifiez la dernière version sur https://github.com/coil-kt/coil
+    implementation ("androidx.compose.ui:ui:1.0.5") // replace with the latest version
+    implementation ("androidx.compose.material:material:1.0.5") // replace with the latest version
+    implementation ("androidx.compose.ui:ui-tooling:1.0.5") // replace with the latest version
+    implementation ("io.coil-kt:coil-compose:1.4.0")
+    implementation ("androidx.compose.material:material:1.1.0") // Vérifiez pour la dernière version
+    implementation ("androidx.compose.ui:ui-tooling:1.1.0")
+    implementation(libs.material) // Coil pour Compose
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

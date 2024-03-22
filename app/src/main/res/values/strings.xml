@@ -5,5 +5,7 @@
     <string name="sample_main_courses">Steak frites, Poulet basquaise, Lasagnes végétariennes</string>
     <string name="sample_desserts">Tarte tatin, Mousse au chocolat, Crème brûlée</string>
     <string name="default_dish_name">Nom du plat</string>
+    <string name="cart">Panier</string>
+
     <string name="title_activity_dish_detail">DishDetailActivity</string>
 </resources>

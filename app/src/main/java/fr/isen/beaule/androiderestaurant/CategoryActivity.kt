@@ -1,7 +1,10 @@
 package fr.isen.beaule.androiderestaurant
 
+import Dish
+import MenuResponse
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,70 +19,95 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
+import com.google.gson.Gson
+import org.json.JSONException
+import org.json.JSONObject
 class CategoryActivity : ComponentActivity() {
+    private lateinit var requestQueue: RequestQueue
+    private lateinit var categoryName: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val categoryName = intent.getStringExtra("category_name") ?: "Catégorie Inconnue"
+        requestQueue = Volley.newRequestQueue(this)
+        categoryName = intent.getStringExtra("category_name") ?: "Catégorie Inconnue"
+        title = categoryName
+        fetchMenu()
+    }
 
-        val dishes = when (categoryName) {
-            "Entrées" -> resources.getString(R.string.sample_entrees).split(", ")
-            "Plats" -> resources.getString(R.string.sample_main_courses).split(", ")
-            "Desserts" -> resources.getString(R.string.sample_desserts).split(", ")
-            else -> listOf("Aucun plat disponible")
-        }
+    private fun fetchMenu() {
+        val url = "http://test.api.catering.bluecodegames.com/menu"
+        val postData = JSONObject().apply { put("id_shop", "1") }
 
-        setContent {
-            AndroidERestauranteTheme {
-                CategoryScreen(categoryName, dishes) { dishName ->
-                    val intent = Intent(this@CategoryActivity, DishDetailActivity::class.java)
-                    intent.putExtra("dish_name", dishName)
-                    startActivity(intent)
+        val jsonObjectRequest = JsonObjectRequest(
+            Request.Method.POST, url, postData,
+            { response ->
+                val menuResponse = Gson().fromJson(response.toString(), MenuResponse::class.java)
+                val selectedCategory = menuResponse.data.firstOrNull { it.nameFr == categoryName }
+                val dishes = selectedCategory?.dishes ?: listOf()
+                updateUI(dishes)
+                Log.d("VolleyResponse", "Response: $response")
+            },
+            { error ->
+                Log.e("VolleyError", "Error: ${error.message}")
+                Toast.makeText(this, "Erreur lors de la récupération des données", Toast.LENGTH_SHORT).show()
+            }
+        )
+        requestQueue.add(jsonObjectRequest)
+    }
+
+    private fun updateUI(dishes: List<Dish>) {
+        runOnUiThread {
+            setContent {
+                AndroidERestauranteTheme {
+                    CategoryScreen(categoryName, dishes) { selectedDish ->
+                        val dishIntent = Intent(this@CategoryActivity, DishDetailActivity::class.java).apply {
+                            putExtra("dish_name", selectedDish.nameFr)
+                            putExtra("ingredients", Gson().toJson(selectedDish.ingredients))
+                            // Assurez-vous que la liste d'images n'est pas vide avant d'essayer d'accéder à son contenu.
+                            putExtra("images", Gson().toJson(selectedDish.images))
+                            putExtra("prices", Gson().toJson(selectedDish.prices))
+
+                            Log.d("CategoryActivity", "priceeee: ${selectedDish.prices}")
+                            Log.d("CategoryActivity", "selectedDish: ${selectedDish.images}")
+
+
+                        }
+                        startActivity(dishIntent)
+                    }
                 }
             }
         }
-
     }
-}
-@Composable
-fun CategoryScreen(categoryName: String, dishes: List<String>, onDishClicked: (String) -> Unit) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = categoryName,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        LazyColumn {
-            items(dishes) { dish ->
-                Text(
-                    text = dish,
-                    modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .clickable { onDishClicked(dish) } // Gestion des clics sur chaque plat
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Divider()
+
+    @Composable
+    fun CategoryScreen(
+        categoryName: String,
+        dishes: List<Dish>,
+        onDishClicked: (Dish) -> Unit
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            LazyColumn {
+                items(dishes) { dish ->
+                    Text(
+                        text = dish.nameFr,
+                        modifier = Modifier
+                            .padding(vertical = 4.dp)
+                            .clickable { onDishClicked(dish) }
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Divider()
+                }
             }
         }
     }
-}
 
 
 
-
-@Preview(showBackground = true)
-@Composable
-fun CategoryScreenPreview() {
-    // Simuler les listes comme elles seraient décomposées à partir de votre strings.xml
-    val sampleDishes = listOf("Test Dish 1", "Test Dish 2")
-
-    // Utiliser les données simulées dans l'aperçu de CategoryScreen
-    AndroidERestauranteTheme {
-        CategoryScreen("Entrées", sampleDishes) { dish ->
-            // Ici, vous pourriez afficher un message de débogage ou ne rien faire.
-            println("Preview cliqué sur le plat: $dish")
-        }
-    }
 }

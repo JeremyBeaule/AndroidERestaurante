@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("MainActivity", "onCreate appelé")
+        title = "Home"
         setContent {
             AndroidERestauranteTheme {
                 HomePage(
