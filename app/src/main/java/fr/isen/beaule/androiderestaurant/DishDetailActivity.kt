@@ -1,5 +1,11 @@
 package fr.isen.beaule.androiderestaurant
 
+import androidx.compose.runtime.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
 import CartItem
 import ShoppingCart
 import android.content.Context
@@ -25,6 +31,7 @@ import org.json.JSONArray
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.TopAppBar
@@ -37,21 +44,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 
 import com.google.gson.Gson
+import org.json.JSONObject
 import java.io.File
-
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun DishDetailLayout(
@@ -66,36 +76,58 @@ fun DishDetailLayout(
     val totalPrice = remember(quantity) { prices.first() * quantity }
     val pagerState = rememberPagerState()
     val context = LocalContext.current
+    Image(
+        painter = painterResource(id = R.drawable.back),
+        contentDescription = "Background",
+        modifier = Modifier.fillMaxSize() ,
 
+        contentScale = ContentScale.FillBounds  // Add this line
 
+    )
     Column(
         modifier = Modifier.padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = dishName,
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            textAlign = TextAlign.Center // Center text horizontally
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         if (images.isNotEmpty()) {
             HorizontalPager(
                 count = images.size,
                 state = pagerState,
                 modifier = Modifier
-                    .height(200.dp) // Fixer la hauteur du pager
+                    .height(200.dp) // Set the pager height
+                //arrondir les coins
+                    .clip(RoundedCornerShape(14.dp)) // Appliquer l'arrondi ici aussi pour que l'image s'aligne avec les coins de la carte
+
             ) { page ->
                 DishImage(imageUrl = images[page])
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        Text(
-            text = dishName,
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center // Centrer le texte horizontalement
-        )
+        // Here is where you call IngredientsButtons
+        IngredientsButtons(ingredients = ingredients)
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Text(
-            text = "Ingrédients : ${ingredients.joinToString(", ")}",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center // Centrer le texte horizontalement
+            //marquer quantité en police 30
+            text = "Quantité",
+            style = TextStyle(
+                fontSize = 30.sp, // Set the font size to 30
+                fontWeight = FontWeight.Bold,
+                color = Color.Yellow
+            )
+
+
         )
-        Spacer(modifier = Modifier.height(16.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Button(onClick = { if (quantity > 1) quantity -= 1 }) {
@@ -104,8 +136,9 @@ fun DishDetailLayout(
             Text(
                 "$quantity",
                 style = TextStyle(
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Yellow
                 ),
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -113,12 +146,18 @@ fun DishDetailLayout(
                 Text("+")
             }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = "Prix total : ${totalPrice}€",
             style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = Color.Yellow
+            //mettre en gras
+
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = { onAddToCart(context, dishName, quantity, totalPrice) }) {
@@ -126,6 +165,48 @@ fun DishDetailLayout(
         }
     }
 }
+
+@Composable
+fun IngredientsButtons(ingredients: List<String>) {
+    // Organiser les ingrédients en lignes de 5
+    val rows = ingredients.chunked(3)
+
+    Column {
+        rows.forEach { row ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp), // Ajouter un peu d'espace entre les lignes
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                row.forEach { ingredient ->
+                    Button(
+                        onClick = { /* Définissez ici votre action */ },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 4.dp), // Ajouter un peu d'espace entre les boutons
+                        contentPadding = PaddingValues(8.dp) // Réduire le remplissage à l'intérieur du bouton pour économiser de l'espace
+                    ) {
+                        Text(
+                            text = ingredient,
+                            style = TextStyle(fontSize = 17.sp), // Réduire la taille du texte si nécessaire
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis // Ajoutez cela pour éviter que le texte ne dépasse du bouton
+                        )
+                    }
+                }
+                // S'il y a moins de 5 éléments dans la dernière rangée, ajoutez des boutons invisibles pour garder l'alignement
+                if (row.size < 3) {
+                    for (i in 0 until (3 - row.size)) {
+                        Spacer(modifier = Modifier.weight(1f).padding(horizontal = 2.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 class DishDetailActivity : ComponentActivity() {
     private val cartItemCount = mutableStateOf(0)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -178,24 +259,29 @@ class DishDetailActivity : ComponentActivity() {
 
         Log.d("DishDetailActivity", "Price: $pricesList")
 
+
         setContent {
+            val context = LocalContext.current
             AndroidERestauranteTheme {
                 DishDetailScreen(
+                    context = context,
                     cartItemCount = cartItemCount.value,
                     dishName = dishName,
                     ingredients = ingredientNames,
                     images = images,
                     prices = pricesList,
-                    onAddToCart = { context, name, quantity, price ->
-                        addToCart(context, name, quantity, price)
-                        // Optionnel : Mettre à jour l'interface utilisateur ici si nécessaire
+                    onAddToCart = { ctx, name, quantity, price ->
+                        addToCart(ctx, name, quantity, price)
                     },
-                     onCartClicked = {
-                        // Implémentez ce que vous voulez faire lorsque l'icône du panier est cliquée
+                    onCartClicked = {
+                        val intent = Intent(context, CartActivity::class.java)
+                        context.startActivity(intent)
                     }
                 )
             }
         }
+
+
     }
 
 
@@ -258,10 +344,46 @@ class DishDetailActivity : ComponentActivity() {
         return gson.toJson(this)
     }
     fun getCartSize(context: Context): Int {
+        // Chemin vers le fichier JSON du panier.
+        val file = File(context.filesDir, "shopping.json")
+
+        // Calculer le nombre total d'articles en lisant le fichier JSON.
+        val totalCount = if (file.exists()) {
+            try {
+                val json = file.readText()
+                val jsonObject = JSONObject(json)
+                val itemsArray = jsonObject.getJSONArray("items")
+                var totalQuantity = 0
+                for (i in 0 until itemsArray.length()) {
+                    val item = itemsArray.getJSONObject(i)
+                    totalQuantity += item.getInt("quantity")
+                }
+                totalQuantity // Retourner le total des quantités.
+            } catch (e: Exception) {
+                Log.e("getCartSize", "Error reading cart size", e)
+                0
+            }
+        } else {
+            0
+        }
+
+        // Mise à jour des SharedPreferences avec le nouveau total.
         val sharedPreferences = context.getSharedPreferences("fr.isen.beaule.androiderestaurant", Context.MODE_PRIVATE)
-        return sharedPreferences.getInt("cart_size", 0)
+        sharedPreferences.edit().putInt("cart_size", totalCount).apply()
+
+        return totalCount // Retourner le total calculé.
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateCartSize()
+    }
+    private fun updateCartSize() {
+        val cartSize = getCartSize(this)
+        updateCartItemCount(this, cartSize) // Mettre à jour l'interface utilisateur avec la nouvelle valeur de `cartSize`.
+
+        // Mettre à jour votre interface utilisateur avec la nouvelle valeur de `cartSize`.
+    }
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         super.onPrepareOptionsMenu(menu)
         val menuItem = menu?.findItem(R.id.action_cart)
@@ -302,71 +424,69 @@ class DishDetailActivity : ComponentActivity() {
 
     }
 
-    @Composable
-    fun DishImage(imageUrl: String) {
-        val defaultImageUrl = "https://upload.wikimedia.org/wikipedia/en/e/ed/Nyan_cat_250px_frame.PNG"
-        val finalImageUrl = if (imageUrl.isEmpty()) defaultImageUrl else imageUrl
 
-        Image(
-            painter = rememberImagePainter(data = finalImageUrl),
-            contentDescription = "Dish Image",
-            modifier = Modifier.fillMaxWidth(),
-            contentScale = ContentScale.Crop
-        )
+@Composable
+fun DishImage(imageUrl: String) {
+    val defaultImageUrl = "https://upload.wikimedia.org/wikipedia/en/e/ed/Nyan_cat_250px_frame.PNG"
+    var finalImageUrl by remember { mutableStateOf(defaultImageUrl) }
+
+    LaunchedEffect(key1 = imageUrl) {
+        if (imageUrl.isNotEmpty()) {
+            val isValid = isValidImageUrl(imageUrl)
+            finalImageUrl = if (isValid) imageUrl else defaultImageUrl
+        }
     }
 
-    @Preview(showBackground = true)
-    @Composable
-    fun DishDetailPreview() {
-        AndroidERestauranteTheme {
-            DishDetailActivity().DishDetailLayout(
-                dishName = "Nom du plat",
-                ingredients = listOf("Ingrédient 1", "Ingrédient 2"),
-                images = listOf("https://example.com/image1.jpg", "https://example.com/image2.jpg"),
-                prices = listOf(10.0, 15.0),
-                onAddToCart = { context, dishName, quantity, price ->
-                    Log.d("DishDetailPreview", "Added to cart: $dishName, $quantity, $price")
+    Image(
+        painter = rememberImagePainter(data = finalImageUrl),
+        contentDescription = "Dish Image",
+        modifier = Modifier.fillMaxWidth(),
+        contentScale = ContentScale.Crop
+    )
+}
+
+
+@Composable
+fun DishDetailScreen(
+    context: Context, // Ajoutez cette ligne
+    dishName: String,
+    ingredients: List<String>,
+    images: List<String>,
+    prices: List<Double>,
+    onAddToCart: (Context, String, Int, Double) -> Unit,
+    cartItemCount: Int, // Ajouter le nombre d'articles dans le panier
+    onCartClicked: () -> Unit // Ajouter un gestionnaire de clic pour l'icône du panier
+) {
+      Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Details") },
+                //ajoutez de la couleur #60E0DB
+                backgroundColor = Color(0xFF60E0DB),
+
+                actions = {
+                    BadgeIcon(
+                        count = cartItemCount,
+                        icon = { Icon(Icons.Filled.ShoppingCart, contentDescription = "Cart") },
+                        onClick = { onCartClicked() } // Ici, on appelle la fonction onCartClicked passée en paramètre
+                    )
                 }
             )
-            // Il est 12h11 quand j'écris ça, tu ne devrais pas faire ça mon petit Jérémy ~ François
         }
-    }
-    @Composable
-    fun DishDetailScreen(
-        dishName: String,
-
-        ingredients: List<String>,
-        images: List<String>,
-        prices: List<Double>,
-        onAddToCart: (Context, String, Int, Double) -> Unit,
-        cartItemCount: Int, // Ajouter le nombre d'articles dans le panier
-        onCartClicked: () -> Unit // Ajouter un gestionnaire de clic pour l'icône du panier
-
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(text = dishName) },
-                    actions = {
-                        BadgeIcon(
-                            count = cartItemCount,
-                            icon = { Icon(Icons.Filled.ShoppingCart, contentDescription = "Cart") },
-                            onClick = onCartClicked
-                        )
-                    }
-                )
+    ) { innerPadding ->
+        DishDetailLayout(
+            modifier = Modifier.padding(innerPadding),
+            dishName = dishName,
+            ingredients = ingredients,
+            images = images,
+            prices = prices,
+            onAddToCart = { _, name, quantity, price ->
+                onAddToCart(context, name, quantity, price) // Passer le contexte actuel lors de l'ajout au panier
             }
-        ) { innerPadding ->
-            DishDetailLayout(
-                modifier = Modifier.padding(innerPadding),
-                dishName = dishName,
-                ingredients = ingredients,
-                images = images,
-                prices = prices,
-                onAddToCart = onAddToCart
-            )
-        }
+        )
     }
+}
+
     @Composable
     fun BadgeIcon(
         count: Int,
@@ -393,6 +513,28 @@ class DishDetailActivity : ComponentActivity() {
             }
         }
     }
+
+
+suspend fun isValidImageUrl(imageUrl: String): Boolean {
+    return withContext(Dispatchers.IO) {
+        try {
+            val url = URL(imageUrl)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.connectTimeout = 5000 // Temps d'attente de connexion de 5 secondes
+            connection.readTimeout = 5000 // Temps d'attente de lecture de 5 secondes
+            connection.requestMethod = "GET"
+            connection.connect()
+
+            val responseCode = connection.responseCode
+            connection.disconnect()
+
+            responseCode == HttpURLConnection.HTTP_OK // Vérifie si la réponse est 200 (OK)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+}
 
 
 

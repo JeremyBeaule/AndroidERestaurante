@@ -59,4 +59,6 @@ data class ShoppingCart(
         file?.writeText(toJson())
     }
 }
-
+data class Cart(
+    val items: List<CartItem>
+)

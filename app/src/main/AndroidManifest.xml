@@ -19,7 +19,9 @@
             android:name=".DishDetailActivity"
             android:exported="false"
             android:theme="@style/Theme.AndroidERestaurante" />
-
+        <activity android:name=".CartActivity">
+            <!-- Vous pouvez ajouter d'autres propriétés ici si nécessaire -->
+        </activity>
         <activity
             android:name=".CategoryActivity"
             android:exported="false"

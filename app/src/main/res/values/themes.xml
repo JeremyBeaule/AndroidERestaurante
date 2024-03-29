@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="header_background_color">#ff8519</color>
+    <color name="header_background_color">#60E0DB</color>
     <color name="header_text_color">#FFFFFF</color>
 
     <!-- Utilisez Theme.MaterialComponents.Light au lieu de android:Theme.Material.Light -->
